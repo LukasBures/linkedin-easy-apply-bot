@@ -1,0 +1,318 @@
+# Credentials/profile are loaded from `.env`:
+# LINKEDIN_USERNAME, LINKEDIN_PASSWORD, LINKEDIN_PHONE_NUMBER,
+# LINKEDIN_LOCATION_COUNTRY, LINKEDIN_LOCATION_CITY, LINKEDIN_PROFILE_URL
+
+profile_path: '' #can be empty, will default to 'C:\Users\<user>\AppData\Local\Google\Chrome\User Data\Default'
+
+positions:
+- Head of AI Infrastructure
+- Head of LLM Systems
+- Head of AI Agents
+- Director of AI Platforms
+- Director of Blockchain Engineering
+- Head of Blockchain Engineering
+- Head of AI Research
+- Head of AI
+- Head of Machine Learning
+- Head of Trading Systems
+- VP of Blockchain Engineering
+- VP of Web3 Engineering
+- Head of Engineering
+- Director of Applied AI
+- Director of AI
+- Principal LLM Architect
+- Principal AI Architect
+- Principal ML Architect
+- Director of Machine Learning
+- Head of Applied AI
+- Head of DeFi Research
+- Head of Crypto Research
+- Head of Web3
+- Lead AI Architect
+- Lead ML Architect
+- Director of Quant Research
+- Head of Quantitative Research
+- Principal AI Engineer
+- Principal Research Scientist
+- CTO
+- Chief Technology Officer
+- Fractional CTO
+- Interim CTO
+- VP of AI
+- VP of Machine Learning
+- Principal Quantitative Researcher
+- Director of Engineering
+- AI Engineering Manager
+- ML Engineering Manager
+- Director of Infrastructure
+- VP of Quantitative Research
+- Head of Data Platforms
+- Web3 Engineering Manager
+- Blockchain Engineering Manager
+- Principal Applied Scientist
+- Senior AI Architect
+- Senior ML Architect
+- Principal Machine Learning Engineer
+- Principal Blockchain Engineer
+- Principal Blockchain Engineer
+- Principal Web3 Engineer
+- VP of Engineering
+- Lead AI Engineer
+- Lead AI Researcher
+- Lead ML Engineer
+- Lead Blockchain Engineer
+- Lead Quant Researcher
+- Staff AI Engineer
+- Staff ML Engineer
+- Staff Blockchain Engineer
+- Principal Systems Engineer
+- Principal Distributed Systems Engineer
+- Principal Backend Engineer
+- Principal Backend Engineer
+- Senior Quantitative Researcher
+- Technical Director
+- Director of Data Science
+- Principal Infrastructure Engineer
+- Principal Platform Engineer
+- Principal Solutions Architect
+- Head of Data Science
+- Staff Quantitative Engineer
+- Senior AI Engineer
+- Senior AI Researcher
+- Senior Machine Learning Engineer
+- Senior Applied Scientist
+- Lead Backend Engineer
+- Lead Infrastructure Engineer
+- Lead Platform Engineer
+- Lead Distributed Systems Engineer
+- Lead Data Architect
+- Lead Systems Architect
+- Lead Solutions Architect
+- Quant Research Manager
+- Senior Smart Contract Engineer
+- Senior Smart Contract Engineer
+- Senior Blockchain Engineer
+- Senior Blockchain Engineer
+- Senior Web3 Engineer
+- Senior Web3 Engineer
+- Data Engineering Manager
+- VP of Technology
+- VP of Data Science
+- Senior Quant Developer
+- Principal Data Scientist
+- Staff Backend Engineer
+- Staff Distributed Systems Engineer
+- Staff Platform Engineer
+- Principal Data Engineer
+- Engineering Manager
+- Research Engineering Manager
+- Platform Engineering Manager
+- Infrastructure Engineering Manager
+- Lead Data Scientist
+- Agent Systems Engineer
+- Multi Agent Systems Engineer
+- LLM Systems Engineer
+- Principal Engineer
+- Principal Software Engineer
+- Senior Backend Engineer
+- Senior Platform Engineer
+- Senior Infrastructure Engineer
+- Senior Distributed Systems Engineer
+- Senior Systems Architect
+- Senior Solutions Architect
+- Senior Backend Engineer
+- Staff Data Engineer
+- Financial Machine Learning Engineer
+- Senior Technical Lead
+- Technical Lead
+- Lead Software Engineer
+- AI Program Manager
+- ML Program Manager
+- AI Product Manager
+- ML Product Manager
+- Crypto Quant
+- DeFi Quant
+- Crypto Product Manager
+- Web3 Product Manager
+- Trading Systems Engineer
+- Staff Software Engineer
+- Senior Data Scientist
+- Senior Data Engineer
+- Senior Data Engineer
+- Prompt Architect
+- AI Platform Engineer
+- AI Infrastructure Engineer
+- AI Architect
+- LLM Architect
+- GenAI Architect
+- Agent Architect
+- AI Systems Architect
+- AI Platform Architect
+- AI Infrastructure Architect
+- Machine Learning Architect
+- ML Platform Engineer
+- ML Infrastructure Engineer
+- ML Systems Engineer
+- ML Architect
+- Web3 Backend Engineer
+- DeFi Backend Engineer
+- Crypto Infrastructure Engineer
+- Senior MLOps Engineer
+- Senior Software Engineer
+- Senior Python Engineer
+- Senior DevOps Engineer
+- Crypto Data Engineer
+- Blockchain Data Engineer
+- Quantitative Researcher
+- AI Systems Consultant
+- AI Platform Consultant
+- AI Infrastructure Consultant
+- Quantitative Data Scientist
+- LLM Engineer
+- Generative AI Engineer
+- AI Agent Engineer
+- RAG Engineer
+- Foundation Model Engineer
+- Prompt Engineer
+- AI Research Engineer
+- Applied AI Engineer
+- AI Solutions Engineer
+- Machine Learning Scientist
+- Machine Learning Scientist
+- AI Research Scientist
+- Research Scientist
+- AI Evaluation Engineer
+- AI Safety Engineer
+- AI Alignment Engineer
+- AI Reliability Engineer
+- AI Observability Engineer
+- ML Research Engineer
+- AI Engineer
+- Machine Learning Engineer
+- Applied Scientist
+- DeFi Researcher
+- Blockchain Security Engineer
+- Smart Contract Security Engineer
+- Protocol Security Engineer
+- Protocol Engineer
+- DeFi Engineer
+- Smart Contract Engineer
+- Solidity Engineer
+- Blockchain Engineer
+- Web3 Engineer
+- Quant Researcher
+- Quantitative Developer
+- Quant Developer
+- Quantitative Engineer
+- Algorithmic Trading Engineer
+- Algorithmic Trading Researcher
+- Market Microstructure Researcher
+- Risk Modeling Engineer
+- Tokenomics Researcher
+- Technical Program Manager
+- Technical Product Manager
+- Data Product Manager
+- Autonomous Systems Engineer
+- Embedding Systems Engineer
+- Data Platform Engineer
+- Data Infrastructure Engineer
+- Data Architect
+- Backend Engineer
+- Python Backend Engineer
+- Distributed Systems Engineer
+- Systems Engineer
+- Infrastructure Engineer
+- Platform Engineer
+- Cloud Architect
+- Solutions Architect
+- Software Architect
+- Systems Architect
+- Distributed Systems Architect
+- Backend Architect
+- Platform Architect
+- Infrastructure Architect
+- AI Startup Founder
+- AI Founder
+- AI Consultant
+- AI Advisor
+- AI Technical Advisor
+- Machine Learning Consultant
+- LLM Consultant
+- Generative AI Consultant
+- AI Strategy Consultant
+- AI Solutions Consultant
+- Web3 Founder
+- Crypto Founder
+- Web3 Technical Advisor
+- Blockchain Advisor
+- DeFi Advisor
+- Web3 Consultant
+- Blockchain Consultant
+- DeFi Consultant
+- Quant Advisor
+- Quantitative Consultant
+- On Chain Data Engineer
+- Data Scientist
+- Applied Data Scientist
+- Research Data Scientist
+- Data Engineer
+- Analytics Engineer
+- Retrieval Engineer
+- Research Engineer
+- Deep Learning Engineer
+- NLP Engineer
+- Computer Vision Engineer
+- MLOps Engineer
+- Decision Scientist
+- Cloud Engineer
+- Technical Founder
+locations:
+- Remote
+#- United States
+#- Canada
+#- United Kingdom
+#- Germany
+#- Netherlands
+#- France
+#- Switzerland
+#- Portugal
+#- Spain
+#- United Arab Emirates
+#- Hong Kong
+#- South Korea
+#- Australia
+#- Israel
+#- India
+#- Lisbon
+#- Dubai
+#- Singapore
+#- Zug
+#- Berlin
+#- San Francisco
+#- New York
+#- Miami
+
+# Compensation values are loaded from `.env`:
+# LINKEDIN_SALARY, LINKEDIN_RATE
+max_pages_per_search: 3
+session_duration_hours_min: 3
+session_duration_hours_max: 5
+short_break_min_seconds: 20
+short_break_max_seconds: 75
+short_break_every_min_minutes: 8
+short_break_every_max_minutes: 18
+shuffle_search_combos: false
+
+# blacklist:
+# - # Company names you want to ignore
+
+experience_level:
+# - 1 # Entry level
+# - 2 # Associate
+# - 3 # Mid-Senior level
+# - 4 # Director
+# - 5 # Executive
+# - 6 # Internship
+- 3
+- 4
+- 5

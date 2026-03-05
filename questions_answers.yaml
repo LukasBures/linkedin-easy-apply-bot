@@ -1,0 +1,296 @@
+version: 1
+defaults:
+  unknown_years: "1"
+  unknown_text: "user provided"
+  yes: "Yes"
+  no: "No"
+  prefer_not: "Wish not to answer"
+  no_self_id: "I do not wish to self-identify"
+
+profile:
+  years:
+    overall_software: "12"
+    ai_ml: "12"
+    machine_learning: "12"
+    deep_learning: "10"
+    nlp: "6"
+    llm_genai: "3"
+    agents: "2"
+    rag: "2"
+    langchain: "2"
+    langgraph: "2"
+    data_science: "10"
+    data_engineering: "8"
+    python: "12"
+    backend: "10"
+    cloud_aws: "8"
+    serverless: "7"
+    web3_blockchain: "8"
+    defi: "8"
+    smart_contracts_solidity: "8"
+    blockchain_security: "8"
+    quant: "5"
+    leadership: "4"
+
+  work_auth:
+    us_citizen: "No"
+    require_sponsorship: "No"
+    legally_authorized: "Yes"
+    linkedin_profile_url: ""
+
+  demographics:
+    gender: "Male"
+    race: "Wish not to answer"
+    ethnicity: "Wish not to answer"
+    lgbtq: "Wish not to answer"
+    nationality: "Wish not to answer"
+    government_id: "I do not wish to self-identify"
+
+rules:
+  - id: salary
+    match_any:
+      - "(?i)salary"
+      - "(?i)compensation"
+      - "(?i)desired salary"
+      - "(?i)expected salary"
+      - "(?i)base salary"
+    answer: "{salary}"
+
+  - id: hourly_rate
+    match_any:
+      - "(?i)hourly rate"
+      - "(?i)rate per hour"
+      - "(?i)contract rate"
+      - "(?i)consulting rate"
+    answer: "{hourly_rate}"
+
+  - id: sponsorship
+    match_any:
+      - "(?i)sponsor"
+      - "(?i)work sponsorship"
+      - "(?i)visa sponsorship"
+      - "(?i)require sponsorship"
+      - "(?i)need sponsorship"
+    answer: "{require_sponsorship}"
+
+  - id: us_citizen
+    match_any:
+      - "(?i)US citizen"
+      - "(?i)U\\.S\\. citizen"
+      - "(?i)are you a US citizen"
+    answer: "{us_citizen}"
+
+  - id: legally_authorized
+    match_any:
+      - "(?i)legally authorized"
+      - "(?i)eligible to work"
+      - "(?i)authorized to work"
+      - "(?i)are you legally"
+    answer: "{legally_authorized}"
+
+  - id: linkedin_profile
+    match_any:
+      - "(?i)linkedin profile"
+      - "(?i)linkedin url"
+      - "(?i)profile url"
+      - "(?i)link to linkedin"
+    answer: "{linkedin_profile_url}"
+
+  - id: gender
+    match_any:
+      - "(?i)gender"
+    answer: "{gender}"
+
+  - id: race
+    match_any:
+      - "(?i)race"
+    answer: "{race}"
+
+  - id: lgbtq
+    match_any:
+      - "(?i)lgbtq"
+      - "(?i)sexual orientation"
+    answer: "{lgbtq}"
+
+  - id: ethnicity
+    match_any:
+      - "(?i)ethnicity"
+    answer: "{ethnicity}"
+
+  - id: nationality
+    match_any:
+      - "(?i)nationality"
+      - "(?i)citizenship(?!.*US)"
+    answer: "{nationality}"
+
+  - id: government
+    match_any:
+      - "(?i)government"
+      - "(?i)veteran"
+      - "(?i)disability"
+    answer: "{government_id}"
+
+  - id: yoe_llm
+    match_any:
+      - "(?i)how many years.*\\b(LLM|large language model|genai|generative ai)\\b"
+      - "(?i)years of experience.*\\b(LLM|large language model|genai|generative ai)\\b"
+    answer: "{years.llm_genai}"
+
+  - id: yoe_agents
+    match_any:
+      - "(?i)how many years.*\\b(agent|agents|multi-agent|agentic|langgraph|langchain)\\b"
+      - "(?i)years of experience.*\\b(agent|agents|multi-agent|agentic|langgraph|langchain)\\b"
+    answer: "{years.agents}"
+
+  - id: yoe_rag
+    match_any:
+      - "(?i)how many years.*\\bRAG\\b"
+      - "(?i)years of experience.*\\bRAG\\b"
+      - "(?i)retrieval augmented generation"
+    answer: "{years.rag}"
+
+  - id: yoe_langchain
+    match_any:
+      - "(?i)how many years.*\\blangchain\\b"
+      - "(?i)years of experience.*\\blangchain\\b"
+    answer: "{years.langchain}"
+
+  - id: yoe_langgraph
+    match_any:
+      - "(?i)how many years.*\\blanggraph\\b"
+      - "(?i)years of experience.*\\blanggraph\\b"
+    answer: "{years.langgraph}"
+
+  - id: yoe_ml
+    match_any:
+      - "(?i)how many years.*\\b(machine learning|ML)\\b"
+      - "(?i)years of experience.*\\b(machine learning|ML)\\b"
+    answer: "{years.machine_learning}"
+
+  - id: yoe_ai
+    match_any:
+      - "(?i)how many years.*\\b(AI|artificial intelligence)\\b"
+      - "(?i)years of experience.*\\b(AI|artificial intelligence)\\b"
+    answer: "{years.ai_ml}"
+
+  - id: yoe_deep_learning
+    match_any:
+      - "(?i)how many years.*\\b(deep learning|pytorch|tensorflow|transformers)\\b"
+      - "(?i)years of experience.*\\b(deep learning|pytorch|tensorflow|transformers)\\b"
+    answer: "{years.deep_learning}"
+
+  - id: yoe_nlp
+    match_any:
+      - "(?i)how many years.*\\bNLP\\b"
+      - "(?i)years of experience.*\\bNLP\\b"
+      - "(?i)natural language processing"
+    answer: "{years.nlp}"
+
+  - id: yoe_python
+    match_any:
+      - "(?i)how many years.*\\bpython\\b"
+      - "(?i)years of experience.*\\bpython\\b"
+      - "(?i)experience.*\\bpython\\b"
+    answer: "{years.python}"
+
+  - id: yoe_backend
+    match_any:
+      - "(?i)how many years.*\\bbackend\\b"
+      - "(?i)years of experience.*\\bbackend\\b"
+      - "(?i)experience.*\\bbackend\\b"
+    answer: "{years.backend}"
+
+  - id: yoe_aws
+    match_any:
+      - "(?i)how many years.*\\bAWS\\b"
+      - "(?i)years of experience.*\\bAWS\\b"
+      - "(?i)experience.*\\bAWS\\b"
+      - "(?i)cloud experience.*\\bAWS\\b"
+    answer: "{years.cloud_aws}"
+
+  - id: yoe_serverless
+    match_any:
+      - "(?i)how many years.*\\b(serverless|lambda|fargate)\\b"
+      - "(?i)years of experience.*\\b(serverless|lambda|fargate)\\b"
+    answer: "{years.serverless}"
+
+  - id: yoe_data_eng
+    match_any:
+      - "(?i)how many years.*\\b(data engineering|ETL|pipelines)\\b"
+      - "(?i)years of experience.*\\b(data engineering|ETL|pipelines)\\b"
+    answer: "{years.data_engineering}"
+
+  - id: yoe_web3
+    match_any:
+      - "(?i)how many years.*\\b(web3|blockchain|crypto)\\b"
+      - "(?i)years of experience.*\\b(web3|blockchain|crypto)\\b"
+    answer: "{years.web3_blockchain}"
+
+  - id: yoe_defi
+    match_any:
+      - "(?i)how many years.*\\b(defi|dex|amm|perps|yield)\\b"
+      - "(?i)years of experience.*\\b(defi|dex|amm|perps|yield)\\b"
+    answer: "{years.defi}"
+
+  - id: yoe_solidity
+    match_any:
+      - "(?i)how many years.*\\b(solidity|smart contract)\\b"
+      - "(?i)years of experience.*\\b(solidity|smart contract)\\b"
+      - "(?i)how many years.*\\bsmart contracts?\\b"
+      - "(?i)years.*\\bsmart contracts?\\b"
+      - "(?i)experience.*\\bsmart contracts?\\b"
+    answer: "{years.smart_contracts_solidity}"
+
+  - id: yoe_security
+    match_any:
+      - "(?i)how many years.*\\b(security|audit|smart contract security|protocol security)\\b"
+      - "(?i)years of experience.*\\b(security|audit|smart contract security|protocol security)\\b"
+    answer: "{years.blockchain_security}"
+
+  - id: yoe_quant
+    match_any:
+      - "(?i)how many years.*\\b(quant|quantitative|trading|risk)\\b"
+      - "(?i)years of experience.*\\b(quant|quantitative|trading|risk)\\b"
+    answer: "{years.quant}"
+
+  - id: yoe_leadership
+    match_any:
+      - "(?i)how many years.*\\b(leadership|management|people management|team lead|engineering manager)\\b"
+      - "(?i)years of experience.*\\b(leadership|management|people management|team lead|engineering manager)\\b"
+    answer: "{years.leadership}"
+
+  - id: yoe_overall
+    match_any:
+      - "(?i)how many years.*\\b(experience|professional experience|industry experience|software)\\b"
+      - "(?i)years of experience\\b(?!.*(LLM|langchain|langgraph|web3|blockchain|python|aws|defi|quant|ml|ai))"
+      - "(?i)total years"
+      - "(?i)overall experience"
+    answer: "{years.overall_software}"
+
+  - id: generic_how_many_years
+    match_any:
+      - "(?i)how many years"
+      - "(?i)years of experience"
+      - "(?i)years experience"
+    answer: "{unknown_years}"
+
+  # Generic yes/no helpers (kept after years rules so they don't hijack experience questions)
+  - id: can_you
+    match_any:
+      - "(?i)^can you\\b"
+    answer: "{yes}"
+
+  - id: do_you
+    match_any:
+      - "(?i)^do you\\b"
+    answer: "{yes}"
+
+  - id: have_you
+    match_any:
+      - "(?i)^have you\\b"
+    answer: "{yes}"
+
+  - id: are_you
+    match_any:
+      - "(?i)^are you\\b"
+    answer: "{yes}"
