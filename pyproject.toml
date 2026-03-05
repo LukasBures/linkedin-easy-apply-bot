@@ -13,6 +13,10 @@ keywords = [
   "python",
   "selenium",
   "job-application",
+  "job-search",
+  "developer-jobs",
+  "software-engineer-jobs",
+  "career-automation",
 ]
 classifiers = [
   "Programming Language :: Python :: 3",

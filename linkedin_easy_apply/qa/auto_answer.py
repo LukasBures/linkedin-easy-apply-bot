@@ -1,15 +1,15 @@
+import csv
 import re
 import time
 from pathlib import Path
 
-import pandas as pd
 import yaml
 
 
 class AutoAnswer:
     def __init__(
         self,
-        qa_file: Path,
+        qa_file: Path | None,
         ans_yaml_path: Path,
         salary: str,
         hourly_rate: str,
@@ -98,10 +98,21 @@ class AutoAnswer:
 
         if q and q not in self.answers:
             self.answers[q] = answer
-            new_data = pd.DataFrame({"Question": [q], "Answer": [answer]})
-            new_data.to_csv(
-                self.qa_file, mode="a", header=False, index=False, encoding="utf-8"
-            )
-            self.log.info(f"Appended to QA file: '{q}' with answer: '{answer}'.")
+            if self.qa_file is not None:
+                try:
+                    self.qa_file.parent.mkdir(parents=True, exist_ok=True)
+                    file_exists = self.qa_file.exists()
+                    with open(self.qa_file, "a", newline="", encoding="utf-8") as f:
+                        writer = csv.writer(f)
+                        if not file_exists:
+                            writer.writerow(["Question", "Answer"])
+                        writer.writerow([q, answer])
+                    self.log.info(
+                        f"Appended to QA file: '{q}' with answer: '{answer}'."
+                    )
+                except Exception as exc:
+                    self.log.warning(
+                        f"Failed to append QA record to {self.qa_file}: {exc}"
+                    )
 
         return answer

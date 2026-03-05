@@ -10,7 +10,6 @@ from collections import deque
 from datetime import datetime
 from pathlib import Path
 
-import pandas as pd
 import pyautogui
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -245,29 +244,9 @@ class LinkedInEasyApplyOrchestrator:
         self.current_job_debug_step = 0
         self.current_job_failure_count = 0
 
-        self.qa_file = Path("template_qa.csv")
+        # Keep QA answers in memory only; no runtime CSV file creation.
+        self.qa_file: Path | None = None
         self.answers: dict[str, str] = {}
-        if self.qa_file.is_file():
-            try:
-                df = pd.read_csv(
-                    filepath_or_buffer=self.qa_file, sep=",", encoding="utf-8"
-                )
-                for _, row in df.iterrows():
-                    question = str(row.get("Question", "")).strip()
-                    answer = str(row.get("Answer", "")).strip()
-                    if question:
-                        self.answers[question] = answer
-            except Exception as exc:
-                log.warning(
-                    f"Failed to read QA file {self.qa_file}: {exc}. Recreating it."
-                )
-                pd.DataFrame(columns=["Question", "Answer"]).to_csv(
-                    self.qa_file, index=False, encoding="utf-8"
-                )
-        else:
-            pd.DataFrame(columns=["Question", "Answer"]).to_csv(
-                self.qa_file, index=False, encoding="utf-8"
-            )
 
         self.auto_answer = AutoAnswer(
             qa_file=self.qa_file,

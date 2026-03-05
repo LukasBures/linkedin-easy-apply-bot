@@ -1,29 +1,27 @@
-# LinkedIn Easy Apply Bot (Python, Selenium, Easy Apply Automation)
+# linkedin-easy-apply-bot
 
-A production-focused **LinkedIn Easy Apply automation bot** built with **Python 3.12** and **Selenium**.
-It automates repetitive Easy Apply workflows with configurable search targets, session pacing, structured logs, and rule-based question answering.
+**LinkedIn Easy Apply Bot for developers and technical job seekers**.  
+Automates repetitive LinkedIn Easy Apply steps with Python + Selenium, YAML-based form answering, session persistence, and diagnostics.
 
-Keywords: `linkedin-easy-apply-bot`, `linkedin automation`, `selenium python bot`, `easy apply automation`, `job application bot`, `yaml form autofill`.
+Targets search terms: `linkedin easy apply bot`, `linkedin automation python`, `job application bot for developers`, `selenium linkedin bot`, `easy apply automation`.
 
-## Why This Repository
+## Why Developers Use This
 
-This project is designed for developers and technical job seekers who want to:
+- Apply to more relevant software roles in less time
+- Keep search sessions controlled (duration, breaks, throughput)
+- Use structured answers for recurring application questions
+- Preserve session continuity with cookie restore/save
+- Debug failures quickly with logs and snapshots
 
-- Automate repetitive Easy Apply steps
-- Run controlled job-search sessions (duration, breaks, throughput)
-- Keep auditable outputs (`logs/events.jsonl`, `results/*.json`)
-- Reuse deterministic question-answer rules from YAML
+## Why This Repo
 
-## Key Features
+- Env-based secrets (`.env`) instead of committing credentials in config
+- Modular architecture (`app/`, `services/`, `infra/`, `domain/`, `qa/`)
+- Structured event logging (`logs/events.jsonl`) and diagnostics traces
+- Make-based developer workflow (`make run`, `make test`, `make format`)
+- MIT license and contributor guide (`AGENTS.md`)
 
-- Easy Apply workflow orchestration with retry/stall diagnostics
-- Cookie session restore/save for LinkedIn authentication continuity
-- Configurable role/location search loops with page caps
-- Throughput metrics: attempts, failures, success rate, projected applications/hour
-- Auto-answer engine for common application questions
-- Debug snapshots for failed flows
-
-## Repository Structure
+## Architecture
 
 ```text
 linkedin_easy_apply/
@@ -36,23 +34,11 @@ linkedin_easy_apply/
   qa/             # question answer engine
 ```
 
-Compatibility entrypoint: `easy_apply_bot.py`
+Entrypoint: `easy_apply_bot.py`
 
-## Suggested GitHub Topics
+## How To Start
 
-Set these repository topics in GitHub for discoverability:
-
-- `linkedin`
-- `linkedin-easy-apply`
-- `python`
-- `selenium`
-- `automation`
-- `job-search`
-- `easy-apply`
-- `webdriver`
-- `yaml`
-
-## Quick Start
+### 1. Install and bootstrap
 
 ```bash
 make venv
@@ -60,7 +46,7 @@ make sync
 cp .env.example .env
 ```
 
-Set required environment variables in `.env`:
+### 2. Configure `.env` (secrets + profile)
 
 - `LINKEDIN_USERNAME`
 - `LINKEDIN_PASSWORD`
@@ -71,31 +57,65 @@ Set required environment variables in `.env`:
 - `LINKEDIN_SALARY`
 - `LINKEDIN_RATE`
 
-Then edit non-secret search settings in `config.yaml` and run:
+### 3. Configure job targeting in `config.yaml`
+
+- `positions` (target job titles)
+- `locations` (target places/remote)
+- `max_pages_per_search`
+- `session_duration_*` and `short_break_*` pacing
+
+### 4. Configure answer logic in `questions_answers.yaml`
+
+- `defaults`: fallback values
+- `profile`: years/work-auth/demographic fields
+- `rules`: regex-based mappings for application questions
+
+### 5. Run
 
 ```bash
 make run
 ```
 
-## Development
+## First Login and 2FA (Important)
 
-- `make format` - format Python code with Ruff
-- `make test` - run project tests if present
+On first run, LinkedIn may request verification.  
+When Chrome opens the login popup, enter the verification code sent to your email and confirm.  
+After successful login, cookies are saved (under `.auth/`) so next runs are usually smoother.
+
+## Commands
+
+- `make run` - start the bot
+- `make test` - run all tests (if present)
+- `make format` - format code with Ruff
 - `pre-commit run --all-files` - run repository checks
 
-## Outputs
+## Output Files
 
-- `logs/` runtime logs
-- `logs/events.jsonl` structured event timeline
-- `results/` application outcome records
-- `debug/` failure and first-job diagnostics
+- `logs/` - runtime logs
+- `logs/events.jsonl` - structured event timeline
+- `results/` - application outcome records
+- `debug/` - diagnostics and failure snapshots
 
-## Security & Privacy
+## Privacy and Safety
 
-- `.env`, cookies, logs, debug artifacts, and results are ignored by git
+- `.env`, `.auth`, logs, debug artifacts, and results are gitignored
 - Keep credentials only in `.env`
-- Review automation behavior and comply with platform terms
+- Use responsibly and review platform terms before automation
+
+## Suggested GitHub Topics
+
+Set these in repository topics for discoverability:
+
+- `linkedin`
+- `linkedin-easy-apply`
+- `easy-apply`
+- `job-search`
+- `job-automation`
+- `python`
+- `selenium`
+- `webdriver`
+- `yaml`
 
 ## License
 
-MIT License - free for personal and commercial use, with attribution retained.
+MIT License. Free for personal and commercial use with copyright notice retained.
