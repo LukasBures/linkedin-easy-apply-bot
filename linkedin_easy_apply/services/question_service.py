@@ -28,7 +28,7 @@ class QuestionService(ServiceBase):
 
     def coerce_numeric_answer(self, question: str, answer: str) -> str:
         q = (question or "").lower()
-        raw = (answer or "").strip()
+        raw = re.sub(r"[,$€£]", "", (answer or "").strip())
         match = re.search(r"\d+(?:\.\d+)?", raw)
         if match:
             value = match.group(0)
@@ -377,11 +377,15 @@ class QuestionService(ServiceBase):
                 normalized_answer = self.humanize_free_text_answer(
                     question, normalized_answer, "text"
                 )
-                text_input.clear()
-                text_input.send_keys(normalized_answer)
+                is_typeahead = text_input.get_attribute("role") == "combobox" or text_input.get_attribute("aria-autocomplete") in ("list", "both")
+                if is_typeahead:
+                    self.bot._fill_typeahead_input(text_input, normalized_answer)
+                else:
+                    text_input.clear()
+                    text_input.send_keys(normalized_answer)
                 self.bot.log_event(
                     "question_answered",
-                    kind="text",
+                    kind="typeahead" if is_typeahead else "text",
                     question=question,
                     answer=normalized_answer,
                 )

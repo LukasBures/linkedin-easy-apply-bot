@@ -505,7 +505,7 @@ class ApplyFlowService(ServiceBase):
         try:
             text_inputs = self.bot.browser.find_elements(
                 By.CSS_SELECTOR,
-                "input[required][type='text'], input[required][type='number'], input[aria-required='true'][type='text']",
+                "input[required][type='text'], input[required][type='number'], input[aria-required='true'][type='text'], input[aria-required='true'][type='number']",
             )
             for input_el in text_inputs:
                 value = (input_el.get_attribute("value") or "").strip()
@@ -535,7 +535,11 @@ class ApplyFlowService(ServiceBase):
                         question, answer, input_el.get_attribute("id") or ""
                     )
                     if normalized_answer:
-                        input_el.send_keys(normalized_answer)
+                        is_typeahead = input_el.get_attribute("role") == "combobox" or input_el.get_attribute("aria-autocomplete") in ("list", "both")
+                        if is_typeahead:
+                            self.bot._fill_typeahead_input(input_el, normalized_answer)
+                        else:
+                            input_el.send_keys(normalized_answer)
         except Exception:
             pass
 

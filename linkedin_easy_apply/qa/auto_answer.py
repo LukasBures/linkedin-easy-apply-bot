@@ -51,8 +51,12 @@ class AutoAnswer:
         ctx = {
             "salary": self.salary,
             "hourly_rate": self.hourly_rate,
-            "unknown_years": defaults.get("unknown_years", "1"),
-            "unknown_text": defaults.get("unknown_text", "user provided"),
+            "unknown_years": str(defaults.get("unknown_years", "1")),
+            "unknown_text": str(defaults.get("unknown_text", "user provided")),
+            "yes": str(defaults.get(True, "Yes")),      # bare 'yes:' in YAML → Python True
+            "no": str(defaults.get(False, "No")),        # bare 'no:' in YAML → Python False
+            "prefer_not": str(defaults.get("prefer_not", "Wish not to answer")),
+            "no_self_id": str(defaults.get("no_self_id", "I do not wish to self-identify")),
             **work_auth,
             **demographics,
         }

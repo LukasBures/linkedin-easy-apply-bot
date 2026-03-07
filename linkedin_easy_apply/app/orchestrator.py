@@ -874,6 +874,26 @@ class LinkedInEasyApplyOrchestrator:
             return False
         return False
 
+    def _fill_typeahead_input(self, input_el, answer: str) -> bool:
+        """Type into a combobox/typeahead field and click the first dropdown suggestion."""
+        try:
+            input_el.clear()
+            input_el.send_keys(answer)
+            time.sleep(1.2)
+            for selector in [
+                "div[role='option'].basic-typeahead__selectable",
+                "[role='listbox'] [role='option']",
+                "li[role='option']",
+            ]:
+                opts = self.browser.find_elements(By.CSS_SELECTOR, selector)
+                visible = [o for o in opts if o.is_displayed()]
+                if visible:
+                    self.browser.execute_script("arguments[0].click();", visible[0])
+                    return True
+        except Exception:
+            pass
+        return False
+
     def load_page(self, sleep: float = 1.0):
         scroll_page = 0
         while scroll_page < 4000:

@@ -274,6 +274,14 @@ rules:
       - "(?i)years experience"
     answer: "{unknown_years}"
 
+  - id: referral_source
+    match_any:
+      - "(?i)how did you hear"
+      - "(?i)how did you find"
+      - "(?i)where did you hear"
+      - "(?i)how were you referred"
+    answer: "LinkedIn"
+
   # Generic yes/no helpers (kept after years rules so they don't hijack experience questions)
   - id: can_you
     match_any:
@@ -283,6 +291,19 @@ rules:
   - id: do_you
     match_any:
       - "(?i)^do you\\b"
+    answer: "{yes}"
+
+  - id: phd_degree
+    match_any:
+      - "(?i)doctor of philosophy"
+      - "(?i)\\bphd\\b"
+      - "(?i)doctoral degree"
+    answer: "{yes}"
+
+  - id: is_your
+    match_any:
+      - "(?i)^is your\\b"
+      - "(?i)^is the\\b"
     answer: "{yes}"
 
   - id: have_you
