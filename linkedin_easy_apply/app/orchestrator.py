@@ -543,6 +543,15 @@ class LinkedInEasyApplyOrchestrator:
             "easy_apply_button_detected", extra={"button_found": bool(button)}
         )
 
+        if self._is_daily_limit_reached():
+            log.warning(
+                "LinkedIn daily application limit reached. Stopping the bot session."
+            )
+            self.log_event("daily_limit_reached", job_id=str(job_id))
+            self.session_deadline = 0.0
+            self._finish_job_debug_trace()
+            return False
+
         if button is not False:
             normalized_title = f" {self.browser.title.lower()} "
             matched_medical_keyword = self._medical_keyword_match()
@@ -703,6 +712,13 @@ class LinkedInEasyApplyOrchestrator:
         self.browser.get(job)
         self.job_page = self.load_page(sleep=0.5)
         return self.job_page
+
+    def _is_daily_limit_reached(self) -> bool:
+        try:
+            page_text = (self.browser.page_source or "").lower()
+            return "we limit daily submissions" in page_text
+        except Exception:
+            return False
 
     def get_easy_apply_button(self):
         try:
