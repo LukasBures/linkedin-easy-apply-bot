@@ -311,6 +311,20 @@ rules:
       - "(?i)^have you\\b"
     answer: "{yes}"
 
+  - id: located_in_us_states
+    match_any:
+      - "(?i)located in.*\\b(AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY)\\b"
+      - "(?i)currently located in one of the following states"
+      - "(?i)reside in the following states"
+    answer: "{no}"
+
+  - id: us_uk_india_resident
+    match_any:
+      - "(?i)resident of the us"
+      - "(?i)resident of the (us|uk|india|united states|united kingdom)"
+      - "(?i)based in the (us|uk|india|united states|united kingdom)"
+    answer: "{no}"
+
   - id: are_you
     match_any:
       - "(?i)^are you\\b"

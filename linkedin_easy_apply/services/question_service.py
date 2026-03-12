@@ -170,6 +170,7 @@ class QuestionService(ServiceBase):
         q = (question or "").strip()
         normalized = (answer or "").strip()
         low = normalized.lower()
+        q_low = q.lower()
 
         placeholder_values = {
             "",
@@ -180,6 +181,17 @@ class QuestionService(ServiceBase):
             "unknown",
             "not sure",
         }
+
+        if any(
+            marker in q_low
+            for marker in (
+                "if you do not require any adjustment",
+                "adjustments to our recruitment process",
+                "accommodation",
+                "reasonable accommodation",
+            )
+        ):
+            return normalized if low not in placeholder_values else "N/A"
 
         if self.is_long_form_prompt(q, input_type):
             if low in placeholder_values or len(normalized) < (
@@ -196,6 +208,13 @@ class QuestionService(ServiceBase):
             return normalized
         if low in {"yes", "no", "wish not to answer", "i do not wish to self-identify"}:
             return normalized
+
+        skip_generic_markers = (
+            "linkedin", "profile url", "github", "portfolio", "website",
+            "salary", "compensation", "expected pay", "annual pay",
+        )
+        if any(m in q_low for m in skip_generic_markers) and low in placeholder_values:
+            return ""
 
         if low in placeholder_values:
             return (
@@ -263,9 +282,17 @@ class QuestionService(ServiceBase):
                 if radios:
                     for radio in radios:
                         if self.radio_matches_answer(field, radio, answer):
-                            self.bot.browser.execute_script(
-                                "arguments[0].click();", radio
-                            )
+                            rid = radio.get_attribute("id") or ""
+                            label_clicked = False
+                            if rid:
+                                try:
+                                    label_el = field.find_element(By.CSS_SELECTOR, f"label[for='{rid}']")
+                                    self.bot._safe_click(label_el)
+                                    label_clicked = True
+                                except Exception:
+                                    pass
+                            if not label_clicked:
+                                self.bot._safe_click(radio)
                             self.bot.log_event(
                                 "question_answered",
                                 kind="radio",
@@ -321,7 +348,17 @@ class QuestionService(ServiceBase):
                 radio = field.find_element(
                     By.CSS_SELECTOR, f"input[type='radio'][value='{answer}']"
                 )
-                self.bot.browser.execute_script("arguments[0].click();", radio)
+                rid = radio.get_attribute("id") or ""
+                label_clicked = False
+                if rid:
+                    try:
+                        label_el = field.find_element(By.CSS_SELECTOR, f"label[for='{rid}']")
+                        self.bot._safe_click(label_el)
+                        label_clicked = True
+                    except Exception:
+                        pass
+                if not label_clicked:
+                    self.bot._safe_click(radio)
                 self.bot.log_event(
                     "question_answered",
                     kind="radio_css",

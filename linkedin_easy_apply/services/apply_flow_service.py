@@ -11,6 +11,225 @@ from .base import ServiceBase
 
 
 class ApplyFlowService(ServiceBase):
+    def detect_daily_easy_apply_limit(self) -> tuple[bool, str | None]:
+        try:
+            page_source = (self.bot.browser.page_source or "").replace("’", "'").lower()
+            markers = (
+                "you reached today's easy apply limit",
+                "you reached todays easy apply limit",
+                "we limit easy apply submissions",
+                "continue applying tomorrow",
+                "easyapplyfuselimitdialogmodal",
+                '"jobapplicationlimitreached":true',
+            )
+            for marker in markers:
+                if marker in page_source:
+                    return True, marker
+        except Exception:
+            pass
+
+        try:
+            dialogs = self.bot.browser.find_elements(
+                By.CSS_SELECTOR, "dialog[open], [role='dialog'], div[data-test-modal]"
+            )
+            for dialog in dialogs:
+                try:
+                    if not dialog.is_displayed():
+                        continue
+                    dialog_text = " ".join(
+                        filter(
+                            None,
+                            (
+                                dialog.text or "",
+                                dialog.get_attribute("data-sdui-screen") or "",
+                                dialog.get_attribute("aria-label") or "",
+                            ),
+                        )
+                    )
+                    normalized = dialog_text.replace("’", "'").lower()
+                    if "easyapplyfuselimitdialogmodal" in normalized:
+                        return True, "dialog_screen"
+                    if "easy apply limit" in normalized and (
+                        "today" in normalized
+                        or "tomorrow" in normalized
+                        or "continue applying" in normalized
+                    ):
+                        return True, "dialog_text"
+                except Exception:
+                    continue
+        except Exception:
+            pass
+
+        return False, None
+
+    def recover_unanswered_radio_groups(self) -> int:
+        recovered = 0
+        try:
+            groups = self.bot.browser.find_elements(
+                By.CSS_SELECTOR,
+                ".jobs-easy-apply-form-section__grouping, fieldset, .fb-form-element",
+            )
+        except Exception:
+            return recovered
+
+        for group in groups:
+            try:
+                if not group.is_displayed():
+                    continue
+                radios = group.find_elements(By.CSS_SELECTOR, "input[type='radio']")
+                if not radios or any(r.is_selected() for r in radios):
+                    continue
+
+                raw_question = group.text or ""
+                question = self.bot._clean_question_text(raw_question)
+                direct = self.bot._derive_direct_answer(question)
+                answer = (
+                    direct
+                    if direct is not None
+                    else self.bot.ans_question(question.lower())
+                )
+
+                matched_radio = None
+                for radio in radios:
+                    if self.bot._radio_matches_answer(group, radio, answer):
+                        matched_radio = radio
+                        break
+
+                target_radio = matched_radio
+                if target_radio is None:
+                    for radio in radios:
+                        if radio.is_displayed() and radio.is_enabled():
+                            target_radio = radio
+                            break
+                if target_radio is None:
+                    continue
+
+                rid = target_radio.get_attribute("id") or ""
+                label_clicked = False
+                if rid:
+                    try:
+                        label_el = group.find_element(By.CSS_SELECTOR, f"label[for='{rid}']")
+                        self.bot._safe_click(label_el)
+                        label_clicked = True
+                    except Exception:
+                        pass
+                if not label_clicked and not self.bot._safe_click(target_radio):
+                    continue
+
+                recovered += 1
+                self.bot.log_event(
+                    "question_answered",
+                    kind=(
+                        "required_radio_recovery"
+                        if matched_radio is not None
+                        else "required_radio_first_option_recovery"
+                    ),
+                    question=question,
+                    answer=answer,
+                )
+            except Exception:
+                continue
+        return recovered
+
+    def recover_empty_required_text_fields(self) -> int:
+        recovered = 0
+        try:
+            fields = self.bot.browser.find_elements(
+                By.CSS_SELECTOR,
+                "textarea[required], textarea[aria-required='true'], "
+                "input[required], input[aria-required='true']",
+            )
+        except Exception:
+            return recovered
+
+        for field in fields:
+            try:
+                if not field.is_displayed():
+                    continue
+                tag_name = (field.tag_name or "").lower()
+                input_type = (field.get_attribute("type") or "").lower()
+                if tag_name == "input" and input_type in {
+                    "hidden",
+                    "file",
+                    "checkbox",
+                    "radio",
+                    "submit",
+                    "button",
+                    "search",
+                }:
+                    continue
+
+                value = (field.get_attribute("value") or "").strip()
+                if value:
+                    continue
+
+                field_id = (field.get_attribute("id") or "").strip()
+                question = ""
+                if field_id:
+                    labels = self.bot.browser.find_elements(
+                        By.CSS_SELECTOR, f"label[for='{field_id}']"
+                    )
+                    if labels:
+                        question = self.bot._clean_question_text(labels[0].text or "")
+                if not question:
+                    question = self.bot._clean_question_text(
+                        (field.get_attribute("aria-label") or "").strip()
+                    )
+                if not question:
+                    continue
+
+                direct = self.bot._derive_direct_answer(question, field_id)
+                answer = (
+                    direct
+                    if direct is not None
+                    else self.bot.ans_question(question.lower())
+                )
+                normalized_answer = self.bot._normalize_text_answer(
+                    question, answer, field_id
+                )
+                normalized_answer = self.bot.questions.humanize_free_text_answer(
+                    question,
+                    normalized_answer,
+                    "textarea" if tag_name == "textarea" else "text",
+                ).strip()
+                if not normalized_answer:
+                    normalized_answer = "N/A"
+
+                is_typeahead = (
+                    field.get_attribute("role") == "combobox"
+                    or field.get_attribute("aria-autocomplete") in ("list", "both")
+                )
+                if is_typeahead:
+                    if not self.bot._fill_typeahead_input(field, normalized_answer):
+                        continue
+                else:
+                    field.clear()
+                    field.send_keys(normalized_answer)
+
+                recovered += 1
+                self.bot.log_event(
+                    "question_answered",
+                    kind=(
+                        "required_textarea_recovery"
+                        if tag_name == "textarea"
+                        else "required_text_recovery"
+                    ),
+                    question=question,
+                    answer=normalized_answer,
+                )
+            except Exception:
+                continue
+        return recovered
+
+    def recover_validation_blockers(self) -> int:
+        recovered = 0
+        self.fill_easy_apply_required_fields()
+        self.bot.process_questions()
+        recovered += self.recover_inline_validation_errors()
+        recovered += self.recover_unanswered_radio_groups()
+        recovered += self.recover_empty_required_text_fields()
+        return recovered
+
     def recover_inline_validation_errors(self) -> int:
         recovered = 0
         try:
@@ -160,11 +379,17 @@ class ApplyFlowService(ServiceBase):
     ) -> tuple[bool, str]:
         end = time.time() + timeout_seconds
         while time.time() < end:
+            limit_reached, _ = self.detect_daily_easy_apply_limit()
+            if limit_reached:
+                return False, "daily_limit"
             if self.find_easy_apply_modal() is not None:
                 return True, "modal"
             if self.has_apply_controls():
                 return True, "controls"
             time.sleep(0.2)
+        limit_reached, _ = self.detect_daily_easy_apply_limit()
+        if limit_reached:
+            return False, "daily_limit"
         if self.find_easy_apply_modal() is not None:
             return True, "modal"
         if self.has_apply_controls():
@@ -172,6 +397,15 @@ class ApplyFlowService(ServiceBase):
         return False, "none"
 
     def retry_open_apply_flow(self) -> tuple[bool, str]:
+        current_url = self.bot.browser.current_url or ""
+        job_id = self.bot.current_job_id
+        if "/jobs/collections/" in current_url and job_id:
+            self.bot.browser.get(f"https://www.linkedin.com/jobs/view/{job_id}")
+            time.sleep(0.7)
+            ok, mode = self.wait_for_apply_flow_ready(timeout_seconds=6.0)
+            if ok:
+                return True, f"retry_collection_redirect_{mode}"
+
         try:
             btn = self.bot.get_easy_apply_button()
             if btn is not False:
@@ -420,9 +654,17 @@ class ApplyFlowService(ServiceBase):
                 for radio in radios:
                     try:
                         if self.bot._radio_matches_answer(group, radio, answer):
-                            self.bot.browser.execute_script(
-                                "arguments[0].click();", radio
-                            )
+                            rid = radio.get_attribute("id") or ""
+                            label_clicked = False
+                            if rid:
+                                try:
+                                    label_el = group.find_element(By.CSS_SELECTOR, f"label[for='{rid}']")
+                                    self.bot._safe_click(label_el)
+                                    label_clicked = True
+                                except Exception:
+                                    pass
+                            if not label_clicked:
+                                self.bot._safe_click(radio)
                             selected = True
                             self.bot.log_event(
                                 "question_answered",
@@ -434,9 +676,17 @@ class ApplyFlowService(ServiceBase):
 
                         value = (radio.get_attribute("value") or "").strip().lower()
                         if value and value in answer_aliases:
-                            self.bot.browser.execute_script(
-                                "arguments[0].click();", radio
-                            )
+                            rid = radio.get_attribute("id") or ""
+                            label_clicked = False
+                            if rid:
+                                try:
+                                    label_el = group.find_element(By.CSS_SELECTOR, f"label[for='{rid}']")
+                                    self.bot._safe_click(label_el)
+                                    label_clicked = True
+                                except Exception:
+                                    pass
+                            if not label_clicked:
+                                self.bot._safe_click(radio)
                             selected = True
                             self.bot.log_event(
                                 "question_answered",
@@ -455,9 +705,17 @@ class ApplyFlowService(ServiceBase):
                             "yes",
                             "1",
                         }:
-                            self.bot.browser.execute_script(
-                                "arguments[0].click();", radio
-                            )
+                            rid = radio.get_attribute("id") or ""
+                            label_clicked = False
+                            if rid:
+                                try:
+                                    label_el = group.find_element(By.CSS_SELECTOR, f"label[for='{rid}']")
+                                    self.bot._safe_click(label_el)
+                                    label_clicked = True
+                                except Exception:
+                                    pass
+                            if not label_clicked:
+                                self.bot._safe_click(radio)
                             selected = True
                             self.bot.log_event(
                                 "question_answered",
@@ -474,9 +732,17 @@ class ApplyFlowService(ServiceBase):
                             "no",
                             "0",
                         }:
-                            self.bot.browser.execute_script(
-                                "arguments[0].click();", radio
-                            )
+                            rid = radio.get_attribute("id") or ""
+                            label_clicked = False
+                            if rid:
+                                try:
+                                    label_el = group.find_element(By.CSS_SELECTOR, f"label[for='{rid}']")
+                                    self.bot._safe_click(label_el)
+                                    label_clicked = True
+                                except Exception:
+                                    pass
+                            if not label_clicked:
+                                self.bot._safe_click(radio)
                             selected = True
                             self.bot.log_event(
                                 "question_answered",
@@ -561,6 +827,7 @@ class ApplyFlowService(ServiceBase):
             last_progress = self.get_easy_apply_progress()
             last_transition_at = time.time()
             unchanged_progress_loops = 0
+            validation_recovery_attempts = 0
             self.bot.log_event("easy_apply_flow_start")
             self.bot._dump_debug_html("easy_apply_flow_start")
             flow_ready, mode = self.wait_for_apply_flow_ready(timeout_seconds=8.0)
@@ -569,6 +836,18 @@ class ApplyFlowService(ServiceBase):
                 "easy_apply_flow_ready", extra={"ready": flow_ready, "mode": mode}
             )
             if not flow_ready:
+                if mode == "daily_limit":
+                    self.bot.request_stop(
+                        "daily_easy_apply_limit_reached",
+                        job_id=str(self.bot.current_job_id or ""),
+                    )
+                    self.bot.log_event(
+                        "easy_apply_flow_blocked",
+                        reason="daily_limit_reached",
+                        mode=mode,
+                    )
+                    self.bot._dump_failure_snapshot("daily_limit_reached")
+                    return False
                 retried_ok, retry_mode = self.retry_open_apply_flow()
                 self.bot.log_event(
                     "easy_apply_flow_retry", success=retried_ok, mode=retry_mode
@@ -577,6 +856,18 @@ class ApplyFlowService(ServiceBase):
                     "easy_apply_flow_retry",
                     extra={"success": retried_ok, "mode": retry_mode},
                 )
+                if not retried_ok and retry_mode == "daily_limit":
+                    self.bot.request_stop(
+                        "daily_easy_apply_limit_reached",
+                        job_id=str(self.bot.current_job_id or ""),
+                    )
+                    self.bot.log_event(
+                        "easy_apply_flow_blocked",
+                        reason="daily_limit_reached",
+                        mode=retry_mode,
+                    )
+                    self.bot._dump_failure_snapshot("daily_limit_reached")
+                    return False
                 if not retried_ok:
                     self.bot.log_event(
                         "easy_apply_flow_stalled",
@@ -624,6 +915,7 @@ class ApplyFlowService(ServiceBase):
                     )
                     last_transition_at = time.time()
                     last_state = state
+                    validation_recovery_attempts = 0
                 self.bot.log_event(
                     "easy_apply_state",
                     state=state,
@@ -644,9 +936,7 @@ class ApplyFlowService(ServiceBase):
                     )
                     break
 
-                self.fill_easy_apply_required_fields()
-                self.bot.process_questions()
-                recovered_count = self.recover_inline_validation_errors()
+                recovered_count = self.recover_validation_blockers()
                 if recovered_count:
                     self.bot.log_event(
                         "validation_recovery",
@@ -829,6 +1119,29 @@ class ApplyFlowService(ServiceBase):
                         diagnostics.get("validation_errors")
                         or int(diagnostics.get("required_empty_count", 0)) > 0
                     ):
+                        if validation_recovery_attempts < 2:
+                            recovered_blockers = self.recover_validation_blockers()
+                            if recovered_blockers:
+                                validation_recovery_attempts += 1
+                                unchanged_progress_loops = 0
+                                last_transition_at = time.time()
+                                self.bot.log_event(
+                                    "validation_block_recovery",
+                                    recovered_fields=recovered_blockers,
+                                    progress=progress,
+                                    loop=loop,
+                                    attempt=validation_recovery_attempts,
+                                    diagnostics=diagnostics,
+                                )
+                                self.bot._dump_debug_html(
+                                    f"validation_block_recovery_loop_{loop}",
+                                    extra={
+                                        "recovered_fields": recovered_blockers,
+                                        "attempt": validation_recovery_attempts,
+                                        "diagnostics": diagnostics,
+                                    },
+                                )
+                                continue
                         self.bot.log_event(
                             "easy_apply_flow_stalled",
                             progress=progress,

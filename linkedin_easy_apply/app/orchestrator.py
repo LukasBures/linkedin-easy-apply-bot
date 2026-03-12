@@ -232,6 +232,8 @@ class LinkedInEasyApplyOrchestrator:
         self.session_jobs_failed_attempts = 0
         self.session_jobs_failed_medical = 0
         self.submitted_timestamps = deque(maxlen=1000)
+        self.stop_requested = False
+        self.stop_reason: str | None = None
 
         self.debug_root = Path("debug")
         self.debug_root.mkdir(parents=True, exist_ok=True)
@@ -279,6 +281,12 @@ class LinkedInEasyApplyOrchestrator:
 
     def log_event(self, event: str, **fields) -> None:
         self.event_logger.log_event(event, **fields)
+
+    def request_stop(self, reason: str, **fields) -> None:
+        self.stop_requested = True
+        self.stop_reason = reason
+        self.session_deadline = 0.0
+        self.log_event("stop_requested", reason=reason, **fields)
 
     def _start_job_debug_trace(self, job_id: str) -> None:
         self.diagnostics.start_job_debug_trace(job_id)
@@ -376,6 +384,8 @@ class LinkedInEasyApplyOrchestrator:
         self.fill_data()
         self.positions = positions
         self.locations = locations
+        randomized_positions = list(positions)
+        random.shuffle(randomized_positions)
         self.session_started_at = time.time()
         self.session_jobs_processed = 0
         self.session_jobs_submitted = 0
@@ -383,6 +393,8 @@ class LinkedInEasyApplyOrchestrator:
         self.session_jobs_failed_attempts = 0
         self.session_jobs_failed_medical = 0
         self.submitted_timestamps.clear()
+        self.stop_requested = False
+        self.stop_reason = None
         self.session_deadline = time.time() + self.session_duration_seconds
         self._schedule_next_short_break()
         self.log_event(
@@ -391,17 +403,21 @@ class LinkedInEasyApplyOrchestrator:
             duration_minutes=round(self.session_duration_seconds / 60, 2),
             positions_count=len(positions),
             locations_count=len(locations),
+            randomized_positions=randomized_positions,
         )
         combos = [
-            (position, location) for position in positions for location in locations
+            (position, location)
+            for position in randomized_positions
+            for location in locations
         ]
         if self.shuffle_search_combos:
             random.shuffle(combos)
 
         for position, location in combos[:500]:
-            if time.time() >= self.session_deadline:
+            if self.stop_requested or time.time() >= self.session_deadline:
                 self.log_event(
-                    "session_deadline_reached", stop_reason="time_budget_exhausted"
+                    "session_deadline_reached",
+                    stop_reason=self.stop_reason or "time_budget_exhausted",
                 )
                 break
             self._maybe_take_short_break(source="combo_loop")
@@ -414,15 +430,22 @@ class LinkedInEasyApplyOrchestrator:
         pages_processed = 0
         log.info("Looking for jobs.. Please wait..")
 
-        self.browser.set_window_position(1, 1)
-        self.browser.maximize_window()
+        try:
+            self.browser.set_window_position(1, 1)
+            self.browser.maximize_window()
+        except Exception:
+            try:
+                self.browser.maximize_window()
+            except Exception:
+                pass
         self.browser, _ = self.next_jobs_page(
             position, location, jobs_per_page, experience_level=self.experience_level
         )
         log.info("Looking for jobs.. Please wait..")
 
         while (
-            time.time() < self.session_deadline
+            not self.stop_requested
+            and time.time() < self.session_deadline
             and pages_processed < self.max_pages_per_search
         ):
             try:
@@ -514,6 +537,8 @@ class LinkedInEasyApplyOrchestrator:
 
     def apply_loop(self, job_ids: dict[str, str]) -> None:
         for job_id in job_ids:
+            if self.stop_requested or time.time() >= self.session_deadline:
+                break
             if job_ids[job_id] == "To be processed":
                 if str(job_id) in self.appliedJobIDs:
                     self.log_event(
@@ -529,6 +554,8 @@ class LinkedInEasyApplyOrchestrator:
                 else:
                     log.info(f"Failed to apply to {job_id}")
                 job_ids[job_id] = "Applied" if applied else "Failed"
+                if self.stop_requested or time.time() >= self.session_deadline:
+                    break
 
     def apply_to_job(self, job_id: str) -> bool:
         self._start_job_debug_trace(str(job_id))
@@ -547,8 +574,11 @@ class LinkedInEasyApplyOrchestrator:
             log.warning(
                 "LinkedIn daily application limit reached. Stopping the bot session."
             )
+            self.request_stop(
+                "daily_easy_apply_limit_reached",
+                job_id=str(job_id),
+            )
             self.log_event("daily_limit_reached", job_id=str(job_id))
-            self.session_deadline = 0.0
             self._finish_job_debug_trace()
             return False
 
@@ -616,6 +646,12 @@ class LinkedInEasyApplyOrchestrator:
                 if result:
                     string_easy = "*Applied: Sent Resume"
                     reason = "submitted"
+                elif (
+                    self.stop_requested
+                    and self.stop_reason == "daily_easy_apply_limit_reached"
+                ):
+                    string_easy = "*Stopped: LinkedIn Easy Apply daily limit reached"
+                    reason = "daily_limit_reached"
                 else:
                     string_easy = "*Did not apply: Failed to send Resume"
                     reason = "apply_flow_failed"
@@ -647,7 +683,7 @@ class LinkedInEasyApplyOrchestrator:
         self._update_session_throughput(
             reason=reason, attempted=bool(button), result=bool(result)
         )
-        if not result:
+        if not result and reason != "daily_limit_reached":
             self._dump_failure_snapshot(
                 f"job_result_{reason}",
                 force_failed_root=(reason == "medical_related_title"),
@@ -715,8 +751,8 @@ class LinkedInEasyApplyOrchestrator:
 
     def _is_daily_limit_reached(self) -> bool:
         try:
-            page_text = (self.browser.page_source or "").lower()
-            return "we limit daily submissions" in page_text
+            detected, _ = self.apply_flow.detect_daily_easy_apply_limit()
+            return detected
         except Exception:
             return False
 
